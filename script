@@ -1,1 +1,289 @@
-https://github.com/godapex587-lang/Bats-Dungeon-Reborn/pull/1#issue-5200743466
+--==================================================
+-- SMOOTH PURPLE DNA BACKGROUND
+--==================================================
+
+local DNA_POINTS = 120
+local DNA_HEIGHT = 150
+local DNA_SPEED = 1.5
+local DNA_WAVES = 2.2
+local DNA_RUNG_SPACING = 4
+
+local DNA_Main = {}
+local DNA_Glow = {}
+local DNA_Rungs = {}
+local DNA_RungGlow = {}
+
+local Purple = Color3.fromRGB(185, 45, 255)
+local BrightPurple = Color3.fromRGB(235, 120, 255)
+
+local function MakeLine(color, thickness, transparency, zindex)
+
+    local line = Drawing.new("Line")
+
+    line.Color = color
+    line.Thickness = thickness
+    line.Transparency = transparency
+    line.Visible = true
+    line.ZIndex = zindex
+
+    return line
+end
+
+--==================================================
+-- CREATE THE TWO DNA STRANDS
+--==================================================
+
+for i = 1, DNA_POINTS - 1 do
+
+    DNA_Main[i] = {
+        MakeLine(Purple, 4, 1, 1006),
+        MakeLine(Purple, 4, 1, 1006)
+    }
+
+    DNA_Glow[i] = {
+        MakeLine(Purple, 24, 0.15, 1002),
+        MakeLine(Purple, 24, 0.15, 1002)
+    }
+
+end
+
+--==================================================
+-- CREATE DNA RUNG GLOW
+--==================================================
+
+local RungCount = 0
+
+for i = 1, DNA_POINTS, DNA_RUNG_SPACING do
+
+    RungCount = RungCount + 1
+
+    DNA_Rungs[RungCount] =
+        MakeLine(
+            BrightPurple,
+            3,
+            1,
+            1007
+        )
+
+    DNA_RungGlow[RungCount] =
+        MakeLine(
+            Purple,
+            12,
+            0.20,
+            1003
+        )
+
+end
+
+--==================================================
+-- SMOOTH FLOW
+--==================================================
+
+task.spawn(function()
+
+    while true do
+
+        local Camera = workspace.CurrentCamera
+
+        if Camera then
+
+            local Viewport =
+                Camera.ViewportSize
+
+            local ScreenWidth =
+                Viewport.X
+
+            local ScreenHeight =
+                Viewport.Y
+
+            local CenterY =
+                ScreenHeight * 0.50
+
+            local Phase =
+                tick() * DNA_SPEED
+
+            --======================================
+            -- STRANDS
+            --======================================
+
+            for i = 1, DNA_POINTS - 1 do
+
+                local A =
+                    (i - 1) /
+                    (DNA_POINTS - 1)
+
+                local B =
+                    i /
+                    (DNA_POINTS - 1)
+
+                local X1 =
+                    A * ScreenWidth
+
+                local X2 =
+                    B * ScreenWidth
+
+                local Angle1 =
+                    A *
+                    math.pi *
+                    DNA_WAVES +
+                    Phase
+
+                local Angle2 =
+                    B *
+                    math.pi *
+                    DNA_WAVES +
+                    Phase
+
+                -- First strand
+
+                local TopY1 =
+                    CenterY +
+                    math.sin(Angle1) *
+                    DNA_HEIGHT
+
+                local TopY2 =
+                    CenterY +
+                    math.sin(Angle2) *
+                    DNA_HEIGHT
+
+                -- Second strand
+
+                local BottomY1 =
+                    CenterY +
+                    math.sin(
+                        Angle1 + math.pi
+                    ) *
+                    DNA_HEIGHT
+
+                local BottomY2 =
+                    CenterY +
+                    math.sin(
+                        Angle2 + math.pi
+                    ) *
+                    DNA_HEIGHT
+
+                local TopStart =
+                    Vector2.new(
+                        X1,
+                        TopY1
+                    )
+
+                local TopEnd =
+                    Vector2.new(
+                        X2,
+                        TopY2
+                    )
+
+                local BottomStart =
+                    Vector2.new(
+                        X1,
+                        BottomY1
+                    )
+
+                local BottomEnd =
+                    Vector2.new(
+                        X2,
+                        BottomY2
+                    )
+
+                -- Main strand 1
+                DNA_Main[i][1].From =
+                    TopStart
+
+                DNA_Main[i][1].To =
+                    TopEnd
+
+                -- Main strand 2
+                DNA_Main[i][2].From =
+                    BottomStart
+
+                DNA_Main[i][2].To =
+                    BottomEnd
+
+                -- Glow strand 1
+                DNA_Glow[i][1].From =
+                    TopStart
+
+                DNA_Glow[i][1].To =
+                    TopEnd
+
+                -- Glow strand 2
+                DNA_Glow[i][2].From =
+                    BottomStart
+
+                DNA_Glow[i][2].To =
+                    BottomEnd
+
+            end
+
+            --======================================
+            -- DNA RUNG CONNECTIONS
+            --======================================
+
+            local RungIndex = 1
+
+            for i = 1,
+                DNA_POINTS,
+                DNA_RUNG_SPACING do
+
+                local A =
+                    (i - 1) /
+                    (DNA_POINTS - 1)
+
+                local X =
+                    A * ScreenWidth
+
+                local Angle =
+                    A *
+                    math.pi *
+                    DNA_WAVES +
+                    Phase
+
+                local TopY =
+                    CenterY +
+                    math.sin(Angle) *
+                    DNA_HEIGHT
+
+                local BottomY =
+                    CenterY +
+                    math.sin(
+                        Angle + math.pi
+                    ) *
+                    DNA_HEIGHT
+
+                local Top =
+                    Vector2.new(
+                        X,
+                        TopY
+                    )
+
+                local Bottom =
+                    Vector2.new(
+                        X,
+                        BottomY
+                    )
+
+                DNA_Rungs[RungIndex].From =
+                    Top
+
+                DNA_Rungs[RungIndex].To =
+                    Bottom
+
+                DNA_RungGlow[RungIndex].From =
+                    Top
+
+                DNA_RungGlow[RungIndex].To =
+                    Bottom
+
+                RungIndex =
+                    RungIndex + 1
+
+            end
+
+        end
+
+        task.wait()
+
+    end
+
+end)
